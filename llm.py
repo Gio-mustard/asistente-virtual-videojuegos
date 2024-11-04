@@ -1,21 +1,28 @@
-import openai
 import json
+from groq_use import MainModelLLM
+from groq import Groq
+from groq.types.chat import ChatCompletionMessage
+# ai = Groq()
+# r = ChatCompletionMessage()
+# r.dict()
 
 #Clase para utilizar cualquier LLM para procesar un texto
 #Y regresar una funcion a llamar con sus parametros
 #Uso el modelo 0613, pero puedes usar un poco de
 #prompt engineering si quieres usar otro modelo
-class LLM():
-    def __init__(self):
-        pass
+class LLM(MainModelLLM):    
+    def __init__(self,llm_object):
+        super().__init__(llm_object)
+        self.__model = 'llama3-groq-70b-8192-tool-use-preview'
+        self.__content_system = "Eres un asistente malhablado"
     
     def process_functions(self, text):
         
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0613",
+        response = self._ai.chat.completions.create(
+            model=self.__model,
             messages=[
                     #Si no te gusta que te hable feo, cambia aqui su descripcion
-                    {"role": "system", "content": "Eres un asistente malhablado"},
+                    {"role": "system", "content": self.__content_system},
                     {"role": "user", "content": text},
             ], functions=[
                 {
@@ -79,8 +86,9 @@ class LLM():
             ],
             function_call="auto",
         )
-        
-        message = response["choices"][0]["message"]
+        print("Response:\n",response)
+        message = response.choices[0].message.dict()
+        print("Message:\n",message)
         
         #Nuestro amigo GPT quiere llamar a alguna funcion?
         if message.get("function_call"):
@@ -98,11 +106,11 @@ class LLM():
     #respuesta, para obtener una respuesta en lenguaje natural (en caso que la
     #respuesta haya sido JSON por ejemplo
     def process_response(self, text, message, function_name, function_response):
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0613",
+        response = self._ai.chat.completions.create(
+            model=self.__model,
             messages=[
                 #Aqui tambien puedes cambiar como se comporta
-                {"role": "system", "content": "Eres un asistente malhablado"},
+                {"role": "system", "content": self.__content_system},
                 {"role": "user", "content": text},
                 message,
                 {
@@ -112,4 +120,4 @@ class LLM():
                 },
             ],
         )
-        return response["choices"][0]["message"]["content"]
+        return response.choices[0].message

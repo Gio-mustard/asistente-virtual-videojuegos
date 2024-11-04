@@ -1,5 +1,5 @@
 import os
-import openai
+import groq
 from dotenv import load_dotenv
 from flask import Flask, render_template, request
 import json
@@ -11,7 +11,8 @@ from pc_command import PcCommand
 
 #Cargar llaves del archivo .env
 load_dotenv()
-openai.api_key = os.getenv('OPENAI_API_KEY')
+groq_object = groq.Groq()
+groq_object.api_key = os.getenv('GROQ_API_KEY')
 elevenlabs_key = os.getenv('ELEVENLABS_API_KEY')
 
 app = Flask(__name__)
@@ -24,10 +25,10 @@ def index():
 def audio():
     #Obtener audio grabado y transcribirlo
     audio = request.files.get("audio")
-    text = Transcriber().transcribe(audio)
+    text = Transcriber(llm_object=groq_object).transcribe(audio)
     
     #Utilizar el LLM para ver si llamar una funcion
-    llm = LLM()
+    llm = LLM(llm_object=groq_object)
     function_name, args, message = llm.process_functions(text)
     if function_name is not None:
         #Si se desea llamar una funcion de las que tenemos
@@ -43,7 +44,7 @@ def audio():
         
         elif function_name == "send_email":
             #Llamar a la funcion para enviar un correo
-            final_response = "Tu que estas leyendo el codigo, implementame y envia correos muahaha"
+            final_response = "Tu que estas leyendo el codigo, implementame y envia correos muahaha" #? Apoco si papito???
             tts_file = TTS().process(final_response)
             return {"result": "ok", "text": final_response, "file": tts_file}
         
@@ -58,6 +59,6 @@ def audio():
             tts_file = TTS().process(final_response)
             return {"result": "ok", "text": final_response, "file": tts_file}
     else:
-        final_response = "No tengo idea de lo que estás hablando, Ringa Tech"
+        final_response = "No tengo idea de lo que estás hablando."
         tts_file = TTS().process(final_response)
         return {"result": "ok", "text": final_response, "file": tts_file}

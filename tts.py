@@ -12,7 +12,7 @@ class TTS():
         CHUNK_SIZE = 1024
         #Utiliza la voz especifica de Bella
         #Me robe este codigo de su pagina hoh
-        url = "https://api.elevenlabs.io/v1/text-to-speech/EXAVITQu4vr4xnSDxMaL"
+        url = "https://api.elevenlabs.io/v1/text-to-speech/15bJsujCI3tcDWeoZsQP"
 
         headers = {
             "Accept": "audio/mpeg",
@@ -22,7 +22,7 @@ class TTS():
 
         data = {
             "text": text,
-            "model_id": "eleven_multilingual_v1",
+            "model_id": "eleven_multilingual_v2",
             "voice_settings": {
                 "stability": 0.55,
                 "similarity_boost": 0.55

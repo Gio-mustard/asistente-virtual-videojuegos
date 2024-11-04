@@ -1,14 +1,23 @@
-import openai
+from groq_use import MainModelLLM
 
 #Convertir audio en texto
-class Transcriber:
-    def __init__(self):
+class Transcriber(MainModelLLM):
+    def __init__(self,llm_object):
+        super().__init__(llm_object)
+        self.__filename = "audio.mp3"
         pass
         
     #Siempre guarda y lee del archivo audio.mp3
     #Utiliza whisper en la nube :) puedes cambiarlo por una impl local
     def transcribe(self, audio):
-        audio.save("audio.mp3")
-        audio_file= open("audio.mp3", "rb")
-        transcript = openai.Audio.transcribe("whisper-1", audio_file)
+        audio.save(self.__filename)
+        audio_file= open(self.__filename, "rb")
+
+        transcript = self._ai.audio.transcriptions.create(
+            file=(self.__filename, audio_file.read()), # Required audio file
+            model="whisper-large-v3-turbo", # Required model to use for transcription
+            response_format="json",  # Optional
+            language="es",  # Optional
+            temperature=0.0  # Optional
+        )
         return transcript.text
