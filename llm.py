@@ -14,7 +14,10 @@ class LLM(MainModelLLM):
     def __init__(self,llm_object):
         super().__init__(llm_object)
         self.__model = 'llama3-groq-70b-8192-tool-use-preview'
-        self.__content_system = "Eres un asistente malhablado"
+        self.__content_system = (
+            "Eres un asistente el cual esta atento a todo lo que dice el usuario ya que le ayudaras a investigar temas sin que te lo pida directamente."
+            "Si el usuario menciona un tema y subtemas debes investigar sobre ello. Si el usuario solo menciona el tema antes de investigar debes de razonar cuales serian los posibles sub temas."
+        )
     
     def process_functions(self, text):
         
@@ -26,75 +29,42 @@ class LLM(MainModelLLM):
                     {"role": "user", "content": text},
             ], functions=[
                 {
-                    "name": "get_weather",
-                    "description": "Obtener el clima actual",
+                    "name": "investigate",
+                    "description": "Investigar un tema del cual se este hablando o se haya mencionado",
                     "parameters": {
                         "type": "object",
                         "properties": {
-                            "ubicacion": {
-                                "type": "string",
-                                "description": "La ubicación, debe ser una ciudad",
+                            "tema_principal":{
+                                "type":"string",
+                                "description":"El tema principal del cual se quiere investigar"
+                            },
+                            "sub_temas":{
+                                "type":"array",
+                                "description":"Los subtemas que divergen del tema principal",
+                                "items":{
+                                    "type":"string"
+                                }
+                            
                             }
                         },
-                        "required": ["ubicacion"],
-                    },
-                },
-                {
-                    "name": "send_email",
-                    "description": "Enviar un correo",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "recipient": {
-                                "type": "string",
-                                "description": "La dirección de correo que recibirá el correo electrónico",
-                            },
-                            "subject": {
-                                "type": "string",
-                                "description": "El asunto del correo",
-                            },
-                            "body": {
-                                "type": "string",
-                                "description": "El texto del cuerpo del correo",
-                            }
-                        },
-                        "required": [],
-                    },
-                },
-                {
-                    "name": "open_chrome",
-                    "description": "Abrir el explorador Chrome en un sitio específico",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "website": {
-                                "type": "string",
-                                "description": "El sitio al cual se desea ir"
-                            }
-                        }
+                        "required": [
+                            "tema_principal",
+                            "sub_temas"
+                        ]
                     }
                 },
-                {
-                    "name": "dominate_human_race",
-                    "description": "Dominar a la raza humana",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                        }
-                    },
-                }
+
             ],
+            temperature=0,
             function_call="auto",
         )
-        print("Response:\n",response)
         message = response.choices[0].message.dict()
-        print("Message:\n",message)
         
         #Nuestro amigo GPT quiere llamar a alguna funcion?
         if message.get("function_call"):
             #Sip
             function_name = message["function_call"]["name"] #Que funcion?
-            args = message.to_dict()['function_call']['arguments'] #Con que datos?
+            args = message['function_call']['arguments'] #Con que datos?
             print("Funcion a llamar: " + function_name)
             args = json.loads(args)
             return function_name, args, message
@@ -121,3 +91,4 @@ class LLM(MainModelLLM):
             ],
         )
         return response.choices[0].message
+

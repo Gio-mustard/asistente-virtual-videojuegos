@@ -7,6 +7,7 @@
     <title>Recorder</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link rel="stylesheet" href="static/recorder.css">
+    <link rel="stylesheet" href="../static/main.css">
   </head>
   <body>
     <h1>Hola mundo</h1>
@@ -32,9 +33,33 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
 
     <script src="static/recorder.js"></script>
+    <main id="main-container">
+    
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
+    
     <script type="text/javascript">
-        recorder("/audio", response => {
+        const main_container = document.getElementById("main-container")
+        const add_card = (html)=>{
+            const new_card = document.createElement("section");
+            new_card.innerHTML = html;
+            new_card.className = "card";
+            new_card.ondblclick=(e)=>{
+                if (new_card.classList.contains('full')){
+                    new_card.classList.remove("full")
+                }
+                else{
+                    new_card.classList.add("full")
+                }
+            }
+            main_container.appendChild(new_card)
+
+
+
+        }
+
+        recorder("/audio", async(response) => {
             document.getElementById("record").style.display="";
             document.getElementById("stop").style.display="none";
             if (!response || response == null) {
@@ -43,15 +68,20 @@
                 return;
             }
             console.log("El texto fue: " + response.text)
-            document.getElementById("text").innerHTML = response.text;
+            add_card(marked.parse(response.text));
+            
             if (typeof response.file !== "undefined") {
                 //Reproducir el audio que regreso Python (si existe)
-                audioFile = response.file;
-                let audio = new Audio();
-                audio.setAttribute("src", "static/" + audioFile);
-                audio.play();
+                audioFiles = response.file;
+                console.log(audioFiles)
+                audioFiles.forEach(async(audioFile) => {
+                    let audio = new Audio();
+                    audio.setAttribute("src", "static/" + audioFile);
+                    await audio.play();
+                    
+                });
             }
         });
-    </script>
+        </script>
   </body>
 </html>
